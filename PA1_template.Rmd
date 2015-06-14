@@ -7,19 +7,86 @@ output:
 
 
 ## Loading and preprocessing the data
+```{r, echo=TRUE}
+download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", destfile = "Reproducible_Research_Peer_Assessment_1.zip", method="curl")
+data <- read.csv(unzip("Reproducible_Research_Peer_Assessment_1.zip"), stringsAsFactors = FALSE)
+```
 
 
 
 ## What is mean total number of steps taken per day?
+```{r, echo=TRUE}
+library(ggplot2)
+steps_daily_mean <- tapply(data$steps, data$date, mean, na.rm=TRUE)
+qplot(steps_daily_mean)
+
+# output the daily mean values
+steps_daily_mean
+
+# output the daily median values
+tapply(data$steps, data$date, median, na.rm=TRUE)
+```
 
 
 
 ## What is the average daily activity pattern?
 
+```{r, echo=TRUE}
+qplot(data$interval, data$steps, stat="summary", fun.y="mean", geom="line")
+interval_means <- tapply(data$steps, data$interval, mean, na.rm=TRUE)
+names(interval_means[which.max(interval_means)])
+```
 
 
 ## Imputing missing values
 
+The data has missing values for steps and the following code provides the number of such rows.
+```{r, echo=TRUE}
+nrow(data[is.na(data$steps), ])
+```
+
+The strategy for filling out the missing values in the data is to populate them with the average number of steps taken for the interval. The code for the same is provided below:
+
+```{r, echo=TRUE}
+steps_na <- is.na(data$steps)
+data_filled_missing_values <- data
+for (i in seq_along(steps_na)) {
+    if(steps_na[i]) {
+        data_filled_missing_values[i,1] <- interval_means[data_filled_missing_values[i,2]]
+        }
+    }
+```
+
+The histogram of the total number of steps taken each day is plotted as follows:
+```{r, echo=TRUE}
+steps_daily_mean_non_missing <- tapply(data_filled_missing_values$steps, data_filled_missing_values$date, mean, na.rm=TRUE)
+qplot(steps_daily_mean_non_missing)
+```
+
+
+The mean and median are calculated and reported below:
+```{r, echo=TRUE}
+tapply(data_filled_missing_values$steps, data_filled_missing_values$date, mean, na.rm=TRUE)
+tapply(data_filled_missing_values$steps, data_filled_missing_values$date, median, na.rm=TRUE)
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+For creating a new factor variable, the following logic is applied:
+1. Identify the weekday of each row using weekdays()
+1. A new column called isWeekend is created. This is set to TRUE if the weekday is Saturday or Sunday and FALSE to every othe weeekday.
+
+```{r, echo=TRUE}
+for (i in seq_along(data_filled_missing_values)) {
+    if (weekdays(as.Date(data_filled_missing_values[i,2])) == "Saturday") {
+        data_filled_missing_values$isWeekend <- TRUE
+    }
+    else if (weekdays(as.Date(data_filled_missing_values[i,2])) == "Sunday") {
+        data_filled_missing_values$isWeekend <- TRUE
+    }
+   else {
+       data_filled_missing_values$isWeekend <- FALSE
+   }
+}
+
+```
