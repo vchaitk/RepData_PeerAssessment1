@@ -33,6 +33,7 @@ tapply(data$steps, data$date, median, na.rm=TRUE)
 
 ```{r, echo=TRUE}
 qplot(data$interval, data$steps, stat="summary", fun.y="mean", geom="line")
+
 interval_means <- tapply(data$steps, data$interval, mean, na.rm=TRUE)
 names(interval_means[which.max(interval_means)])
 ```
@@ -73,20 +74,11 @@ tapply(data_filled_missing_values$steps, data_filled_missing_values$date, median
 
 ## Are there differences in activity patterns between weekdays and weekends?
 For creating a new factor variable, the following logic is applied:
+
 1. Identify the weekday of each row using weekdays()
-1. A new column called isWeekend is created. This is set to TRUE if the weekday is Saturday or Sunday and FALSE to every othe weeekday.
+2. A new column called isWeekend is created. This is set to TRUE if the weekday is Saturday or Sunday and FALSE to every othe weeekday.
 
 ```{r, echo=TRUE}
-for (i in seq_along(data_filled_missing_values)) {
-    if (weekdays(as.Date(data_filled_missing_values[i,2])) == "Saturday") {
-        data_filled_missing_values$isWeekend <- TRUE
-    }
-    else if (weekdays(as.Date(data_filled_missing_values[i,2])) == "Sunday") {
-        data_filled_missing_values$isWeekend <- TRUE
-    }
-   else {
-       data_filled_missing_values$isWeekend <- FALSE
-   }
-}
+
 
 ```
